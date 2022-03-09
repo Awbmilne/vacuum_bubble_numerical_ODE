@@ -1,101 +1,115 @@
+__author__ = "Austin W. Milne"
+__credits__ = ["Austin W. Milne", ]
+__email__ = "awbmilne@uwaterloo.ca"
+__version__ = "1.0"
+__date__ = "March 8, 2022"
 
+"""
+This code was written for Project #1 of ME303 "Advanced Engineering Mathmatics" in the Winter 2022 term.
+The goal is to numerically solve an ODE relating to the occilation of a collapsing vacuum bubble in
+water. There are a number of solution methods implemented and compared. In some cases, these solutions
+are also compared to the analytical solution.
+"""
+
+import sys
 import copy
-from sympy import Function, Symbol, Matrix, sin, cos, symbols, diff, Derivative, Array
-from sympy.solvers import solve
-from sympy.matrices import Matrix, eye, zeros, ones, diag, GramSchmidt
+import math
+import numpy
+import pandas as pd
+import matplotlib.pyplot as plt
+from tkinter import E
+from sympy import Matrix, sin, cos, symbols
+from sympy.matrices import Matrix
 
-## TODO: Eliminate extraneous slope calculations and storage
-
+## BOOKMARK: ODE Solver Class
 class Solvy_boi:
+    """ 
+    ODE numerical solution class.
+    This Class takes a system of first order ODEs and provides a number of
+    methods available for solving the system numerically.
+    """
     def __init__(self, symbols, functions):
+        # Store the ODE system
         self.symbols = symbols
         self.functions = functions
-        self.state_size = len(symbols) * 2
     
-    def e_eul(self, pos, slope, dt): ## NOTE: Probably dont need to store and re-calculate the slop the second time around
+    def e_eul(self, state, dt):
         # Increment the positions using Explicit Euler method
-        value_subs_array = list(zip(self.symbols, pos))
-        slopes = Matrix([f.subs(value_subs_array) for f in self.functions])
-        pos = pos + dt * slopes
-        
-        # Increment the slopes
-        new_value_subs_array = list(zip(self.symbols, pos))
-        slope = Matrix([f.subs(new_value_subs_array) for f in self.functions])
-        return pos, slope
+        v_subs_dict = list(zip(self.symbols, state)) # Dictionary for value substitution
+        slopes = Matrix([f.subs(v_subs_dict) for f in self.functions]) # Solve for slopes
+        state = state + dt * slopes # Apply slopes to state
+        return state
     
-    def e_rk2(self, pos, slope, dt):
-        # Increment the positions using Runge-Kutta (RK4) method
-        pos_i = copy.copy(pos)
-        slope_i = copy.copy(slope) ## NOTE: Probably dont need
+    def e_rk2(self, state, dt):
+        # Increment the state using Runge-Kutta (RK2) method
+        state_0 = copy.copy(state)
         # Solve for k1
-        value_subs_array = list(zip(self.symbols, pos))
-        slopes = Matrix([f.subs(value_subs_array) for f in self.functions])
+        v_subs_dict = list(zip(self.symbols, state))
+        k1 = Matrix([f.subs(v_subs_dict) for f in self.functions])
         # Solve for k2 using k1
-        pos = pos_i + 0.5 * dt * slopes
-        value_subs_array = list(zip(self.symbols, pos))
-        slopes = Matrix([f.subs(value_subs_array) for f in self.functions])
-        # Apply the k slopes to the function
-        pos = pos_i + dt * slopes
-        new_value_subs_array = list(zip(self.symbols, pos)) ## NOTE: Probably dont need
-        slope = Matrix([f.subs(new_value_subs_array) for f in self.functions]) ## NOTE: Probably dont need
-        return pos, slope
+        state = state_0 + 0.5 * dt * k1
+        v_subs_dict = list(zip(self.symbols, state))
+        k2 = Matrix([f.subs(v_subs_dict) for f in self.functions])
+        # Apply the k2 slope to the function
+        state = state_0 + dt * k2
+        return state
 
-    def e_rk4(self, pos, slope, dt):
-        # Increment the positions using Runge-Kutta (RK4) method
-        pos_i = copy.copy(pos)
-        slope_i = copy.copy(slope) ## NOTE: Probably dont need
-        rk_slopes = []
+    def e_rk4(self, state, dt):
+        # Increment the state using Runge-Kutta (RK4) method
+        state_0 = copy.copy(state)
         # Solve for k1
-        value_subs_array = list(zip(self.symbols, pos))
-        slopes = Matrix([f.subs(value_subs_array) for f in self.functions])
-        rk_slopes.append(slopes)
+        v_subs_dict = list(zip(self.symbols, state))
+        k1 = Matrix([f.subs(v_subs_dict) for f in self.functions])
         # Solve for k2 using k1
-        pos = pos_i + 0.5 * dt * slopes
-        value_subs_array = list(zip(self.symbols, pos))
-        slopes = Matrix([f.subs(value_subs_array) for f in self.functions])
-        rk_slopes.append(slopes)
+        state = state_0 + 0.5 * dt * k1
+        v_subs_dict = list(zip(self.symbols, state))
+        k2 = Matrix([f.subs(v_subs_dict) for f in self.functions])
         # Solve for k3 using k2
-        pos = pos_i + 0.5 * dt * slopes
-        value_subs_array = list(zip(self.symbols, pos))
-        slopes = Matrix([f.subs(value_subs_array) for f in self.functions])
-        rk_slopes.append(slopes)
+        state = state_0 + 0.5 * dt * k2
+        v_subs_dict = list(zip(self.symbols, state))
+        k3 = Matrix([f.subs(v_subs_dict) for f in self.functions])
         # Solve for k4 using k3
-        pos = pos_i + dt * slopes
-        value_subs_array = list(zip(self.symbols, pos))
-        slopes = Matrix([f.subs(value_subs_array) for f in self.functions])
-        rk_slopes.append(slopes)
+        state = state_0 + dt * k3
+        v_subs_dict = list(zip(self.symbols, state))
+        k4 = Matrix([f.subs(v_subs_dict) for f in self.functions])
         # Apply the k slopes to the function
-        pos = pos_i + dt * (1.0/6.0) * (rk_slopes[0] + 2*rk_slopes[1] + 2*rk_slopes[2] + rk_slopes[3])
-        new_value_subs_array = list(zip(self.symbols, pos)) ## NOTE: Probably dont need
-        slope = Matrix([f.subs(new_value_subs_array) for f in self.functions]) ## NOTE: Probably dont need
-        return pos, slope
+        state = state_0 + dt * (1.0/6.0) * (k1 + 2*k2 + 2*k3 + k4)
+        return state
     
-    def run_solution(self, method, pos_0, slope_0, d_t ,t):
-        pos = pos_0
-        slope = slope_0
-        data_set = [(0*d_t, pos_0, slope_0)]
-        for i in range(int(t / d_t)):
-            pos, slope = method(self, pos, slope, d_t) ## NOTE: Slope probably not necessary
-            data_set.append((i+1, pos, slope))
+    def run_solution(self, method, state_0, d_t ,t):
+        state = state_0 # Not necessary, just cleanliness
+        data_set = [[0] + [v for v in state_0]] # Store the 0 initial data point
+        for i in range(int(t / d_t)): # For every incremental step
+            state = method(self, state, d_t) # Update the state using the specified method
+            data_set.append([d_t*(i+1)] + [v for v in state]) # Append the data to the array
         return data_set
 
-
-a,b,c = symbols("a b c")
-
-my_system = Solvy_boi(
-    [a, b, c],
-    [b**2 + cos(b), a, a * b**2]
-)
-
-
+## BOOKMARK: Main Script
 if __name__ == "__main__":
-    print(my_system)
-    pos = Matrix([0,0,0])
-    slope = Matrix([0,0,0])
+    # Create the necessary symbols
+    a,b,c = symbols("a b c")
 
-    data = my_system.run_solution(Solvy_boi.e_eul, pos, slope, 0.0001, 1)
-    print(data[-1])
-    data = my_system.run_solution(Solvy_boi.e_rk2, pos, slope, 0.0001, 1)
-    print(data[-1])
-    data = my_system.run_solution(Solvy_boi.e_rk4, pos, slope, 0.0001, 1)
-    print(data[-1])
+    # Create the ODE object
+    system = Solvy_boi(
+        [a, b, c], # List of variables, The slopes of which are the LHS of the below equations
+        [b, c, -sin(b) - math.e**a] # List of functions, RHS of system
+    )
+    state_0 = Matrix([0,0,0]) # Initial state of system
+
+    # Run the computation using each method
+    # data = system.run_solution(Solvy_boi.e_eul, state_0, 0.001, 10)
+    # data = system.run_solution(Solvy_boi.e_rk2, state_0, 0.001, 10)
+    data = system.run_solution(Solvy_boi.e_rk4, state_0, 0.001, 10)
+    print(sys.getsizeof(data))
+
+    # Create prettified data frame
+    df = pd.DataFrame(data) # Create a pandas data frame from the data array
+    plot_symbols = ['t'] + [repr(s) for s in system.symbols] # Create a list of symbols for the dataframe (Add 't')
+    df.rename(columns=dict(enumerate(plot_symbols, start=0)), inplace=True) # Name each part of the data frame (clean output)
+    print(numpy.shape(df), type(df), df, sep='\n') # Output the data frame
+
+    # Create a plot from the data
+    for symbol in plot_symbols[1:]:
+        plt.plot(df[plot_symbols[0]], df[symbol], label='Line '+symbol) # Plot each line with its symbol
+    plt.legend() # Enable legend
+    plt.show() # Show plot
