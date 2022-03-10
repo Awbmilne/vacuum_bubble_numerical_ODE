@@ -86,30 +86,39 @@ class Solvy_boi:
 
 ## BOOKMARK: Main Script
 if __name__ == "__main__":
+    r_0 = 0.002
+    rho = 1000
+    p_0 = 100981
+    lmda_sqr = (3 * p_0) / (rho * r_0**2)
+    T_star = 0.0003609935174 
+    delta_t = 0.00000001
+
     # Create the necessary symbols
-    a,b,c = symbols("a b c")
+    P, R = symbols("P R")
 
     # Create the ODE object
     system = Solvy_boi(
-        [a, b, c], # List of variables, The slopes of which are the LHS of the below equations
-        [b, c, -sin(b) - math.e**a] # List of functions, RHS of system
+        [P, R], # List of variables, The slopes of which are the LHS of the below equations
+        [-(3/2) * (p_0/(rho*r_0)) + lmda_sqr*r_0 - lmda_sqr*R, P] # List of functions, RHS of system
     )
-    state_0 = Matrix([0,0,0]) # Initial state of system
+    state_0 = Matrix([0,0.002]) # Initial state of system
 
     # Run the computation using each method
-    # data = system.run_solution(Solvy_boi.e_eul, state_0, 0.001, 10)
-    # data = system.run_solution(Solvy_boi.e_rk2, state_0, 0.001, 10)
-    data = system.run_solution(Solvy_boi.e_rk4, state_0, 0.001, 10)
-    print(sys.getsizeof(data))
+    # data = system.run_solution(Solvy_boi.e_eul, state_0, delta_t, T_star)
+    # data = system.run_solution(Solvy_boi.e_rk2, state_0, delta_t, T_star)
+    data = system.run_solution(Solvy_boi.e_rk4, state_0, delta_t, T_star)
 
     # Create prettified data frame
     df = pd.DataFrame(data) # Create a pandas data frame from the data array
+    # pd.set_option("display.max_rows", None)
     plot_symbols = ['t'] + [repr(s) for s in system.symbols] # Create a list of symbols for the dataframe (Add 't')
     df.rename(columns=dict(enumerate(plot_symbols, start=0)), inplace=True) # Name each part of the data frame (clean output)
+    df['A'] = [r_0] + [0.001 * cos(8702.629 * delta_t * (i+1)) + 0.001 for i in range(int(T_star / delta_t))] # Add Analytical solution
     print(numpy.shape(df), type(df), df, sep='\n') # Output the data frame
 
     # Create a plot from the data
-    for symbol in plot_symbols[1:]:
+    for symbol in df.columns[2:4]:
         plt.plot(df[plot_symbols[0]], df[symbol], label='Line '+symbol) # Plot each line with its symbol
+
     plt.legend() # Enable legend
     plt.show() # Show plot
