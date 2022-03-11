@@ -1,6 +1,10 @@
 import copy
-from sympy import Matrix
+import math
+import numpy as np
+from sympy import E, Matrix
 from sympy.matrices import Matrix
+
+s_lim = 10e5
 
 ## BOOKMARK: ODE Solver Class
 class Solvy_boi:
@@ -9,8 +13,9 @@ class Solvy_boi:
     This Class takes a system of first order ODEs and provides a number of
     methods available for solving the system numerically.
     """
-    def __init__(self, symbols, functions, analytical):
+    def __init__(self, symbol, symbols, functions, analytical):
         # Store the ODE system
+        self.symbol = symbol
         self.symbols = symbols
         self.functions = functions
         self.analytical = analytical
@@ -18,9 +23,15 @@ class Solvy_boi:
     def e_eul(self, state, dt, t):
         # Increment the positions using Explicit Euler method
         v_subs_dict = list(zip(self.symbols, state)) # Dictionary for value substitution
-        slopes = Matrix([f.subs(v_subs_dict) for f in self.functions]) # Solve for slopes
-        state = state + dt * slopes # Apply slopes to state
-        return state
+        slopes = Matrix([np.clip(f.subs(v_subs_dict),-s_lim,s_lim) for f in self.functions]) # Solve for slopes
+        new_state = state + dt * slopes # Apply slopes to state
+        # Rebound when the radius goes below 0
+        i = self.symbols.index(self.symbol)
+        if math.copysign(1, state[i]) != math.copysign(1, new_state[i]):
+            if (state[i] != 0) and (new_state[i] != 0):
+                state[i] = -state[i]
+                return -state
+        return new_state
     
     def e_rk2(self, state, dt, t):
         # Increment the state using Runge-Kutta (RK2) method

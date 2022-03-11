@@ -32,16 +32,17 @@ if __name__ == "__main__":
     mu = 0.798e-3
     sigma = 0.072
     p_0 = 10e5 + 1000*9.81*1000
-    T_star = 0.87798
-    delta_t = 0.001
+    T_star = 10
+    delta_t = 0.0001
 
     # Create the necessary symbols
     P, R, t = symbols("P R t")
 
     # Create the ODE object
     system = Solvy_boi(
+        R, # The actual output variable
         [P, R], # List of variables, The slopes of which are the LHS of the below equations
-        [(-p_0 - 4*mu*(P/R)-2*(sigma/R)-(3/2)*(rho*P**2))/(rho * R), P%10e3], # List of functions, RHS of system
+        [(-p_0 - 4*mu*(P/R)-2*(sigma/R)-(3/2)*(rho*P**2))/(rho * R), P], # List of functions, RHS of system
         [lambda t: None, lambda t : None]
     )
     state_0 = Matrix([0,100]) # Initial state of system
@@ -50,10 +51,10 @@ if __name__ == "__main__":
     # Run the computation using each method and collect data
     data = {}
     time = {}
-    methods = [["Eulers",     Solvy_boi.e_eul],
-               ["RK2",        Solvy_boi.e_rk2],
-               ["RK4",        Solvy_boi.e_rk4],
-               ["Analytical", Solvy_boi.anl]]
+    methods = [["Eulers",     Solvy_boi.e_eul]]
+            #    ["RK2",        Solvy_boi.e_rk2],
+            #    ["RK4",        Solvy_boi.e_rk4],
+            #    ["Analytical", Solvy_boi.anl]]
     for method in methods:
         start = timeit.default_timer()
         data[method[0]] = system.run_solution(method[1], state_0, delta_t, T_star)
