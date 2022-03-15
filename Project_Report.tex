@@ -1,0 +1,100 @@
+
+\documentclass[12pt]{article}
+\usepackage[a4paper, total={6.5in, 9in}]{geometry}
+\usepackage{import}
+
+\import{./}{macros}
+
+
+\title{
+    % UW Mech/Tron Eng Logo
+    \includegraphics[width=\linewidth]{resources/uwaterloo_mechanical_and_mechatronics_engineering/UWaterloo_Mechanical_Mechatronics_Eng_Logo_horiz_rgb.png}
+    \\[1cm]
+    \underline{\bf{ME 303 - Collapsing Vacuum Bubble ODEs}}
+}
+\author{
+    Japmeet Brar\\
+    Austin W. Milne
+}
+\date{July 17, 2021}
+
+
+\begin{document}
+\maketitle
+\vfill
+\begin{abstract}
+    Project 1 report for ME 303 in Winter 2022. Using numerical ODE solutions to model the collapse and rebound of underwater vacuum bubbles. Project source code and report available at:
+    \underline{\url{https://github.com/Awbmilne/vacuum_bubble_numerical_ODE}}.
+\end{abstract}
+\newpage
+
+\tableofcontents
+\listoftables
+\listoffigures
+\lstlistoflistings
+
+\newpage
+
+% \begin{abstract}
+% Report 
+% \end{abstract}
+
+% PROBLEM OVERVIEW ──────────────────────────────────────────────────────────────── %
+\section{Problem Overview}
+
+% PART 1 ────────────────────────────────────────────────────────────────────────── %
+\section{Simplified Solution}
+\subsection{Pressure at Depth}
+\subsection{Analytical Solution}
+\subsection{Numerical Solution}
+\subsubsection{Order Reduction}
+\subsubsection{Solution Methods}
+\subsubsection{Software Implementation}
+\subsection{Error Analysis}
+
+% PART 2 ────────────────────────────────────────────────────────────────────────── %
+\section{Rayleigh-Plesset Equation}
+\subsection{Bubble Energy}
+\subsection{Numerical Solution}
+\subsubsection{Order Reduction}
+\subsubsection{Solution Methods}
+\subsubsection{Software Implementation}
+\subsection{Error Analysis}
+\subsection{Radius Variation}
+
+\begin{equation}
+    \label{eqn:pt1_momentum}
+    v_a m_a + v_b m_b = v_a' m_a + v_b' m_b
+\end{equation}
+
+\pagebreak
+\section{Appendix}
+
+\subsection{Code Listings}
+% Solvy_boi.py
+\lstinputlisting[title=\texttt{\scriptsize Solvy_boi.py}, caption=ODE Solver Object | Solvy_boi.py, label=solvy_boi]{./Solvy_boi.py}
+
+% Question_1.py
+\lstinputlisting[title=\texttt{\scriptsize Question_1.py}, caption=Question 1 Runner | Question_1.py, label=q1_code]{./Question_1.py}
+
+
+\vspace{5cm}
+
+\pagebreak
+{
+    \lstinputlisting[ title=\texttt{\scriptsize output.log}, caption=Script Output | output.log, label=solvy_boi]{./Solvy_boi.py}
+}
+
+\setcounterref{lstlinereffirst}{code:euler_start}
+\setcounterref{lstlinereflast}{code:euler_end}
+\lstinputlisting[title=\texttt{\scriptsize output.log},
+                 caption=Script Output | output.log,
+                 label=euler_iteration,
+                 firstline=\thelstlinereffirst,
+                 lastline=\thelstlinereflast,
+                 firstnumber=\thelstlinereffirst]{./Solvy_boi.py}
+
+% \bibliographystyle{abbrv}
+% \bibliography{main}
+
+\end{document}

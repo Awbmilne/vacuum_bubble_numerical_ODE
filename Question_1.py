@@ -11,41 +11,44 @@ water. There are a number of solution methods implemented and compared. In some 
 are also compared to the analytical solution.
 """
 
+import os
 import csv
-from os import times
 import numpy
 import timeit
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-from sympy import Matrix, cos, symbols, Eq
+from sympy import Matrix, symbols, cos
 from sympy.matrices import Matrix
 
 from Solvy_boi import Solvy_boi
 
-out_path = Path('./out/Question_1')
-
-if __name__ == "__main__":
-    # CONFIGURATION ─────────────────────────────────────────────────────────────────── #
+def run_q1(delta_t, T_star, slope_lim, root, r_0=0.002, show_output=False):
+    # CONFIGURATION ------------------------------------------------------------------- #
     r_0 = 0.002
     rho = 1000
     p_0 = 100981
     lmda_sqr = (3 * p_0) / (rho * r_0**2)
-    T_star = 0.0003609935174 
-    delta_t = 0.000001
+    out_p = root / f'dt_{delta_t}'
+
+    # Ensure output directory exists
+    if not os.path.exists(out_p):
+        os.makedirs(out_p)
 
     # Create the necessary symbols
     P, R, t = symbols("P R t")
 
     # Create the ODE object
     system = Solvy_boi(
+        R,
         [P, R], # List of variables, The slopes of which are the LHS of the below equations
         [-(3/2) * (p_0/(rho*r_0)) + lmda_sqr*r_0 - lmda_sqr*R, P], # List of functions, RHS of system
+        slope_lim,
         [lambda t: None, lambda t : 0.001 * cos(8702.629 * t) + 0.001]
     )
     state_0 = Matrix([0,0.002]) # Initial state of system
 
-    # CALCULATIONS ──────────────────────────────────────────────────────────────────── #
+    # CALCULATIONS -------------------------------------------------------------------- #
     # Run the computation using each method and collect data
     data = {}
     time = {}
@@ -64,15 +67,15 @@ if __name__ == "__main__":
     for _, set in data.items():
         set.rename(columns=dict(enumerate(plot_symbols, start=0)), inplace=True) # Name colums of the data sets
 
-    # DATA OUTPUT ───────────────────────────────────────────────────────────────────── #
+    # DATA OUTPUT --------------------------------------------------------------------- #
     # Print the Data Sets for posterity
     for label, set in data.items():
-        print(f"\n ── Data for system solved using {label} method ──")
-        print(f"Solution time: {time[label]}")
-        print(numpy.shape(set), type(set), set, sep='\n') # Print to stdout
-        set.to_csv(out_path / f"{label}_data") # Save CSV file to 'out' folder
+        if(show_output): print(f"\n -- Data for system solved using {label} method --")
+        if(show_output): print(numpy.shape(set), type(set), set, sep='\n') # Print to stdout
+        print(f"Solution time ({label}): {time[label]}")
+        set.to_csv(out_p / f"{label}_data.csv") # Save CSV file to 'out' folder
 
-    with open(out_path / f"solve_times", 'w') as file:
+    with open(out_p / f"solve_times", 'w') as file:
         labels = [label for label,_ in time.items()]
         writer = csv.DictWriter(file, labels)
         # writer.writerow(labels)
@@ -84,15 +87,23 @@ if __name__ == "__main__":
         plt.title(f"Radius vs Time - {label} Method - Δt={delta_t}")
         plt.xlabel("Time")
         plt.ylabel("Radius")
-        plt.savefig(out_path / f"{label}_graph.png")
+        plt.savefig(out_p / f"{label}_graph.png")
         plt.clf()
     
     # Create combined plot for all solutions
     for label, set in data.items():
         plt.plot(set[repr(t)], set[repr(R)], label=label)
     plt.title(f"Radius vs Time - Methods Compared - Δt={delta_t}")
-    plt.xlabel("Time")
-    plt.ylabel("Radius")
+    plt.xlabel("Time [sec]")
+    plt.ylabel("Radius [m]")
     plt.legend()
-    plt.savefig(out_path / f"combined_graph.png")
-    plt.show()
+    plt.savefig(out_p / f"combined_graph.png")
+    if show_output: plt.show()
+    plt.clf()
+
+if __name__ == "__main__":
+    delta_t = 0.0000001
+    T_star = 0.0003609935174 
+    slope_lim = 10e5
+    root = Path(f'./out/Question_1')
+    run_q1(delta_t, T_star, slope_lim, root, show_output=True)
