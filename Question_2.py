@@ -28,7 +28,7 @@ def run_q2(delta_t, T_star, slope_lim, root, r_0=100, show_output=False):
     rho = 996
     mu = 0.798e-3
     sigma = 0.072
-    p_0 = 10e5 + 1000*9.81*1000
+    p_0 = 10e5 + 1000*9.81*100
     out_p = root / f'dt_{delta_t}'
     
     # Ensure output directory exists
@@ -55,7 +55,6 @@ def run_q2(delta_t, T_star, slope_lim, root, r_0=100, show_output=False):
     methods = [["Eulers",     Solvy_boi.e_eul],
                ["RK2",        Solvy_boi.e_rk2],
                ["RK4",        Solvy_boi.e_rk4],]
-            #    ["Analytical", Solvy_boi.anl]]
     for method in methods:
         start = timeit.default_timer()
         data[method[0]] = system.run_solution(method[1], state_0, delta_t, T_star)
@@ -72,7 +71,7 @@ def run_q2(delta_t, T_star, slope_lim, root, r_0=100, show_output=False):
     for label, set in data.items():
         if show_output: print(f"\n -- Data for system solved using {label} method --")
         if show_output: print(numpy.shape(set), type(set), set, sep='\n') # Print to stdout
-        print(f"Solution time: {time[label]}")
+        print(f"Solution time ({label}): {time[label]}")
         set.to_csv(out_p / f"{label}_data.csv") # Save CSV file to 'out' folder
 
     with open(out_p / f"solve_times", 'w') as file:
@@ -84,20 +83,20 @@ def run_q2(delta_t, T_star, slope_lim, root, r_0=100, show_output=False):
     # Create a plot for each data set
     for label, set in data.items():
         plt.plot(set[repr(t)], set[repr(R)]) # Plot each line with its symbol
-        plt.title(f"Radius vs Time - {label} Method - Δt={delta_t}")
+        # plt.title(f"Radius vs Time - {label} Method - Δt={delta_t}")
         plt.xlabel("Time")
         plt.ylabel("Radius")
-        plt.savefig(out_p / f"{label}_graph.png")
+        plt.savefig(out_p / f"{label}_graph.png", bbox_inches = 'tight')
         plt.clf()
     
     # Create combined plot for all solutions
     for label, set in data.items():
         plt.plot(set[repr(t)], set[repr(R)], label=label)
-    plt.title(f"Radius vs Time - Methods Compared - Δt={delta_t}")
+    # plt.title(f"Radius vs Time - Methods Compared - Δt={delta_t}")
     plt.xlabel("Time")
     plt.ylabel("Radius")
     plt.legend()
-    plt.savefig(out_p / f"combined_graph.png")
+    plt.savefig(out_p / f"combined_graph.png", bbox_inches = 'tight')
     if show_output: plt.show()
     plt.clf()
 

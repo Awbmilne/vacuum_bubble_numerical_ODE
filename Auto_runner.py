@@ -55,18 +55,18 @@ Q2_size_set = [0.1, 1, 10, 100]
 if __name__ == '__main__':
     # AUTORUN ------------------------------------------------------------------------- #
     # Debugging output of Δt sets
-    # print(f"Q1 dt set:\n{Q1_dt_set}")
-    # print(f"Q2 dt set:\n{Q2_dt_set}")
+    #print(f"Q1 dt set:\n{Q1_dt_set}")
+    #print(f"Q2 dt set:\n{Q2_dt_set}")
     
-    # # Run the Q1 set
-    # for i, dt in enumerate(Q1_dt_set, start=1):
-    #     print(f"\nRunning ({i}/{len(Q1_dt_set)}) Q1 with dt = {dt}")
-    #     run_q1(dt, Q1_T_star, Q1_slope_lim, Q1_dt_variance_root)
+    # Run the Q1 set
+    for i, dt in enumerate(Q1_dt_set, start=1):
+        print(f"\nRunning ({i}/{len(Q1_dt_set)}) Q1 with dt = {dt}")
+        run_q1(dt, Q1_T_star, Q1_slope_lim, Q1_dt_variance_root)
 
-    # # Run the Q2 set
-    # for i, dt in enumerate(Q2_dt_set, start=1):
-    #     print(f"\nRunning ({i}/{len(Q2_dt_set)}) Q2 with dt = {dt}")
-    #     run_q2(dt, Q2_T_star, Q2_slope_lim, Q2_dt_variance_root)
+    # Run the Q2 set
+    for i, dt in enumerate(Q2_dt_set, start=1):
+        print(f"\nRunning ({i}/{len(Q2_dt_set)}) Q2 with dt = {dt}")
+        run_q2(dt, Q2_T_star, Q2_slope_lim, Q2_dt_variance_root)
 
 
     # ERROR DETERMINATION AND GRAPHING ------------------------------------------------ #
@@ -118,20 +118,51 @@ if __name__ == '__main__':
             os.makedirs(Path(out_file).parent)
         for method in methods:
             plt.plot(df['dt'], df[method], label=method) # Plot the single method
-        plt.title(f"Method error vs Δt - {q.replace('_',' ')}")
+        # plt.title(f"Method error vs Δt - {q.replace('_',' ')}")
         plt.xlabel("Δt [sec]")
         plt.ylabel("error [m]")
         plt.yscale('log')
         plt.xscale('log')
         plt.legend()
-        plt.savefig(error_root / q / f"error.png")
+        plt.savefig(error_root / q / f"error.png",  bbox_inches = 'tight')
         plt.clf()
 
+        # CREATE R@T VS ΔT GRAPH ------------------------------------------------------ #
+        # Collect list of R values
+        r_list = []
+        for dt in dts:
+            r_frame = [dt]
+            for method in methods:
+                with open(root / f'dt_{dt}' / f'{method}_data.csv', newline='') as csvfile:
+                    reader = csv.reader(csvfile)
+                    for row in reader:
+                        if row[1] == str(time):
+                            r_frame.append(float(row[3]))
+            r_list.append(r_frame)
+
+        # Create labeled dataframe for easier data manipulation
+        df = pd.DataFrame(r_list)
+        columns = ['dt'] + methods
+        df.rename(columns=dict(enumerate(columns, start=0)), inplace=True)
+
+        # Create combined plot of data values
+        out_file = error_root / q / f"r_at_t.png"
+        if not os.path.isdir(Path(out_file).parent):
+            os.makedirs(Path(out_file).parent)
+        for method in methods:
+            plt.plot(df['dt'], df[method], label=method) # Plot the single method
+        # plt.title(f"Method error vs Δt - {q.replace('_',' ')}")
+        plt.xlabel("Δt [sec]")
+        plt.ylabel("r [m]")
+        plt.xscale('log')
+        plt.legend()
+        plt.savefig(error_root / q / f"r_at_t.png",  bbox_inches = 'tight')
+        plt.clf()
 
     # VARIED BUBBLE DIAMETER ---------------------------------------------------------- #
     
     # Run the Q2 set
     for i, size in enumerate(Q2_size_set, start=1):
-        dt = min(Q2_dt_set)
-        print(f"\nRunning ({i}/{len(Q1_dt_set)}) Q2 with size = {size}")
+        dt = Q2_dt_set[-2]
+        print(f"\nRunning ({i}/{len(Q2_size_set)}) Q2 with size = {size}")
         run_q2(dt, Q2_T_star, Q2_slope_lim, Q2_size_variance_root / str(size), r_0=size)

@@ -35,31 +35,31 @@ def run_q1(delta_t, T_star, slope_lim, root, r_0=0.002, show_output=False):
     if not os.path.exists(out_p):
         os.makedirs(out_p)
 
-    # Create the necessary symbols
-    P, R, t = symbols("P R t")
+    # Create the necessary symbols (*@\label{code:solver_object_start}@*)
+    P, R, t = symbols("P R t") # sympy.symbol objects for symbolic formula
 
-    # Create the ODE object
+    # Create the ODE object 
     system = Solvy_boi(
-        R,
+        R, # Variable of consequence. Used to determine error.
         [P, R], # List of variables, The slopes of which are the LHS of the below equations
         [-(3/2) * (p_0/(rho*r_0)) + lmda_sqr*r_0 - lmda_sqr*R, P], # List of functions, RHS of system
-        slope_lim,
-        [lambda t: None, lambda t : 0.001 * cos(8702.629 * t) + 0.001]
+        slope_lim, # Limiting value for slope (absolute value)
+        [lambda t: None, lambda t : 0.001 * cos(8702.629 * t) + 0.001] # Lambda functions for analytical solution
     )
-    state_0 = Matrix([0,0.002]) # Initial state of system
+    state_0 = Matrix([0,0.002]) # Initial state of system (*@\label{code:solver_object_end}@*)
 
     # CALCULATIONS -------------------------------------------------------------------- #
-    # Run the computation using each method and collect data
-    data = {}
-    time = {}
+    # Run the computation using each method and collect data (*@\label{code:part_1_run_solutions_start}@*)
+    data = {} # Empty data dictionary
+    time = {} # Empty time dictionary
     methods = [["Eulers",     Solvy_boi.e_eul],
                ["RK2",        Solvy_boi.e_rk2],
                ["RK4",        Solvy_boi.e_rk4],
                ["Analytical", Solvy_boi.anl]]
     for method in methods:
-        start = timeit.default_timer()
+        start = timeit.default_timer() # Start a timer
         data[method[0]] = system.run_solution(method[1], state_0, delta_t, T_star)
-        time[method[0]] = timeit.default_timer() - start
+        time[method[0]] = timeit.default_timer() - start # Store the time required to solve (*@\label{code:part_1_run_solutions_end}@*)
     data.update((label, pd.DataFrame(set)) for label, set in data.items()) # Convert data sets to dataframes
 
     # Add column names for data in each data frame (prettify)
@@ -84,20 +84,20 @@ def run_q1(delta_t, T_star, slope_lim, root, r_0=0.002, show_output=False):
     # Create a plot for each data set
     for label, set in data.items():
         plt.plot(set[repr(t)], set[repr(R)]) # Plot each line with its symbol
-        plt.title(f"Radius vs Time - {label} Method - Δt={delta_t}")
+        # plt.title(f"Radius vs Time - {label} Method - Δt={delta_t}")
         plt.xlabel("Time")
         plt.ylabel("Radius")
-        plt.savefig(out_p / f"{label}_graph.png")
+        plt.savefig(out_p / f"{label}_graph.png", bbox_inches = 'tight')
         plt.clf()
     
     # Create combined plot for all solutions
     for label, set in data.items():
         plt.plot(set[repr(t)], set[repr(R)], label=label)
-    plt.title(f"Radius vs Time - Methods Compared - Δt={delta_t}")
+    # plt.title(f"Radius vs Time - Methods Compared - Δt={delta_t}")
     plt.xlabel("Time [sec]")
     plt.ylabel("Radius [m]")
     plt.legend()
-    plt.savefig(out_p / f"combined_graph.png")
+    plt.savefig(out_p / f"combined_graph.png", bbox_inches = 'tight')
     if show_output: plt.show()
     plt.clf()
 

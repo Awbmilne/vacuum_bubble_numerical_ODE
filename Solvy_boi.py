@@ -17,7 +17,7 @@ import numpy as np
 from sympy import E, Matrix
 from sympy.matrices import Matrix
 
-class Solvy_boi:
+class Solvy_boi:  #(*@\label{code:solver_init_start}@*)
     """ 
     ODE numerical solution class.
     This Class takes a system of first order ODEs and provides a number of
@@ -29,7 +29,7 @@ class Solvy_boi:
         self.symbols = symbols
         self.functions = functions
         self.s_lim = s_lim
-        self.analytical = analytical
+        self.analytical = analytical #(*@\label{code:solver_init_end}@*)
     
     # Exclusive Euler solution methodology (*@\label{code:euler_start}@*)
     def e_eul(self, state, dt, t):
@@ -62,7 +62,7 @@ class Solvy_boi:
         state_0 = copy.copy(state)
         # Solve for k1
         v_subs_dict = list(zip(self.symbols, state))
-        k1 = Matrix([np.clip(f.subs(v_subs_dict),-self.s_lim,self.s_lim) for f in self.functions])
+        k1 = Matrix([np.clip(f.subs(v_subs_dict),-self.s_lim,self.s_lim) for f in self.functions]) #(*@\label{code:np_clip_call}@*)
         # Solve for k2 using k1
         new_state = state_0 + 0.5 * dt * k1
         v_subs_dict = list(zip(self.symbols, state))
@@ -86,9 +86,9 @@ class Solvy_boi:
         if math.copysign(1, state[i]) != math.copysign(1, new_state[i]):
             if (state[i] != 0) and (new_state[i] != 0):
                 # print(f"Collapse @ t={t}") # Debug output
-                state[i] = -state[i]
-                return -state
-        return new_state # Return the corrected state (*@\label{code:sign_inversion_end}@*)
+                state[i] = -state[i] # Invert the value of consequence
+                return -state # Invert the entire state (reverts value of consquence)
+        return new_state # Return the new state if no sign change (*@\label{code:sign_inversion_end}@*)
     
     # Analytical solution incrementor (*@\label{code:analytical_start}@*)
     def anl(self, state, dt, t):
@@ -102,5 +102,5 @@ class Solvy_boi:
         for i in range(int(t / d_t)): # For every incremental step
             time = d_t*(i+1)
             state = method(self, state, d_t, time) # Update the state using the specified method
-            data_set.append([d_t*(i+1)] + [v for v in state]) # Append the data to the array
+            data_set.append([d_t*(i+1)] + [v for v in state]) # Append the data point to the array
         return data_set # Return the list of data (*@\label{code:incrementor_end}@*)
