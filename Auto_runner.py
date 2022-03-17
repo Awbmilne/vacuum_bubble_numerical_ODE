@@ -1,5 +1,5 @@
 __author__ = "Austin W. Milne"
-__credits__ = ["Austin W. Milne", ]
+__credits__ = ["Austin W. Milne", "Japmeet Brar", "Joshua Selvanayagam", "Kevin Chu"]
 __email__ = "awbmilne@uwaterloo.ca"
 __version__ = "1.0"
 __date__ = "March 8, 2022"

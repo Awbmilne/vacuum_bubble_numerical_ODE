@@ -2,13 +2,22 @@
 \usepackage{graphicx}
 \usepackage{pgfplots}
 \usepackage{caption}
+\usepackage{subcaption}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{float}
 \usepackage{tikz}
 \usetikzlibrary{math}
 \usepackage{standalone}
 \usepackage{fancyvrb}
 \usepackage{refcount}
+\usepackage{indentfirst} % Indent first line of first paragraphs
+\usepackage{parskip} % Configure paragraph spacing
+
+\usepackage[nottoc,notlof,notlot,numbib]{tocbibind} % Add Bibliography to TOC
+
+\setlength{\parindent}{4em} % Indent size for start of paragraphs
+\setlength{\parskip}{1em} % Spacing between paragraphs
 
 % Setup references to have hyperlinks
 \usepackage{hyperref}
@@ -17,19 +26,20 @@
         citecolor=black,
         filecolor=black,
         linkcolor=black,
-        urlcolor=blue
+        urlcolor=blue,
+        linktoc=all
 }
         
 % Add Code listings
 \usepackage{listings} 
 \usepackage{csvsimple}
 \usepackage{tabu}
-% This is the color used for MATLAB comments below
+% This is the color used for Language comments below
 \definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0}
 \definecolor{backcolour}{rgb}{204,204,204}
 % Rename Listings
 \renewcommand{\lstlistingname}{Listing} % Rename listing to code
-\renewcommand\lstlistlistingname{Listings of Code} % Rename list of listing to List of Code
+\renewcommand\lstlistlistingname{List of Code Listings} % Rename list of listing to List of Code
 % For faster processing, load python syntax for listings
 \lstloadlanguages{Python}%
 \lstset{language=Python,                        % Use Python
@@ -50,7 +60,7 @@
         %
         %%% Put standard Language functions not included in the default
         %%% language here
-        morekeywords={},
+        morekeywords={self},
         %
         %%% Put Language function parameters here
         morekeywords=[2]{},
